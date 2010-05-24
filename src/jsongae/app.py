@@ -16,7 +16,7 @@ class MainHandler(webapp.RequestHandler):
     """The main handler."""
 
     def get(self):
-        MyData(key_name="foobar", string="Some test data.").put()
+        MyData.get_or_insert(key_name="foobar", string="Some test data.")
         user = users.get_current_user()
         self.response.out.write('%s' % user)
 
