@@ -40,6 +40,10 @@ class RPCHandler(JsonRpcHandler):
         if entity:
             return entity.json()
 
+    @ServiceMethod
+    def test(self, message):
+        return message
+
 
 app = webapp.WSGIApplication([
     ('/', MainHandler),
