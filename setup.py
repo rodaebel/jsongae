@@ -40,7 +40,6 @@ setup(
     package_dir = {'': os.sep.join(['src', 'jsongae'])},
     include_package_data=True,
     install_requires=[
-        'chameleon',
         'distribute',
     ],
     zip_safe=False,
