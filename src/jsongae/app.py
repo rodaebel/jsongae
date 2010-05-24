@@ -1,6 +1,7 @@
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from json_rpc import JsonRpcHandler, ServiceMethod
 
@@ -16,9 +17,15 @@ class MainHandler(webapp.RequestHandler):
     """The main handler."""
 
     def get(self):
+        """Handles GET."""
+
         MyData.get_or_insert(key_name="foobar", string="Some test data.")
+
         user = users.get_current_user()
-        self.response.out.write('%s' % user)
+        vars = dict(
+            user=users.get_current_user()
+        )
+        self.response.out.write(template.render('index.html', vars))
 
 
 class RPCHandler(JsonRpcHandler):

@@ -1,0 +1,77 @@
+div#header {
+  background-image: url(/gradient.gif);
+  height: 44px;
+  text-align: right;
+}
+
+#header .links {
+  margin: 8px 105px 0 0;
+}
+
+#header span {
+  background: url(/separator.gif) no-repeat;
+  font-size: 18px;
+  margin: 0 3px 0 8px;
+  width: 1px;
+}
+
+#header a {
+  color: #333; 
+  font-family: "Warnock Pro", "Goudy Old Style", "Palatino", "Book Antiqua", Georgia, serif; 
+  font-size: 1.2em;
+  font-style: italic;
+  font-weight: normal;
+  margin: 6px;
+}
+
+.headline {
+  padding-top: 10px;
+}
+
+h1 {
+  color: #111;
+  font-size: 2em;
+}
+
+h2 {
+  color: #111;
+  font-size: 1.8em;
+}
+
+p {
+  line-height: 1.5em;
+}
+
+strong {
+  color: #111;
+}
+
+a {
+  border: none;
+  color: #009;
+  text-decoration: none;
+}
+
+a:hover {
+  border: none;
+  color: #009;
+  text-decoration: none;
+}
+
+a:visited {
+  border: none;
+  color: #009;
+  text-decoration: none;
+}
+
+img.right {
+  float: right;
+  margin-left: 5px;
+}
+
+.emph {
+  color: #666; 
+  font-family: "Warnock Pro", "Goudy Old Style", "Palatino", "Book Antiqua", Georgia, serif; 
+  font-style: italic;
+  font-weight: normal;
+}

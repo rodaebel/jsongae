@@ -8,6 +8,14 @@ handlers:
 - url: /client
   static_dir: client
 
+- url: /css
+  static_dir: css
+
+- url: /(.*\.(gif|jpg|png))
+  static_files: images/\1
+  upload: images/(.*\.(gif|jpg|png))
+  expiration: 5h
+
 - url: /rpc
   script: app.py
 
