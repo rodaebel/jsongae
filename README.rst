@@ -26,12 +26,12 @@ zc.buildout.  See the buildout.cfg file.
 
 The buildout needs Python and the tools contained in /bin and /usr/bin of a
 standard installation of the Linux operating environment. You should ensure
-that these directories are on your PATH and following programs can be found::
+that these directories are on your PATH and following programs can be found:
 
- * Python 2.5.2+ (3.x is not supported!)
- * virtualenv
- * Java
- * Ant
+* Python 2.5.2+ (3.x is not supported!)
+* virtualenv
+* Java
+* Ant
 
 
 Building and Running the Application
