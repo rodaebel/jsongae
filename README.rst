@@ -7,6 +7,17 @@ Google App Engine (Python). The client communicates with the server interfaces
 through JSON/RPC (http://groups.google.com/group/json-rpc/web/json-rpc-2-0).
 
 
+Copyright and License
+---------------------
+
+Copyright 2010 Tobias Rodaebel and Florian Glanzner
+
+This software is released under the Apache License, Version 2.0. You may obtain
+a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+
 Requirements
 ------------
 
