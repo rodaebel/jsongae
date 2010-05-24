@@ -1,5 +1,5 @@
 ======================================================
-Running GWT Applications On Google App Engine (Python)
+Running GWT Applications on Google App Engine (Python)
 ======================================================
 
 This sample application demonstrates how to run a client written with GWT on
