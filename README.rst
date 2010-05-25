@@ -1,6 +1,6 @@
-======================================================
-Running GWT Applications on Google App Engine (Python)
-======================================================
+============================================
+JSON/RPC 2.0 with Google App Engine (Python)
+============================================
 
 This sample application demonstrates how to run a client written with GWT on
 Google App Engine (Python). The client communicates with the server interfaces
@@ -21,7 +21,7 @@ a copy of the License at
 Requirements
 ------------
 
-Most of the required libraries and programs (GWT, GAE SDK) will be installed by
+Most of the required libraries and programs (GAE SDK, GWT) will be installed by
 zc.buildout.  See the buildout.cfg file.
 
 The buildout needs Python and the tools contained in /bin and /usr/bin of a
