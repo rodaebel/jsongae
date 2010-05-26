@@ -33,4 +33,3 @@ handlers:
 
 - url: /
   script: app.py
-  login: required
