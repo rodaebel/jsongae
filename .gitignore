@@ -1,0 +1,14 @@
+*.egg-info/
+*.pyc
+*.swp
+.*
+bin/
+develop-eggs/
+downloads/
+eggs/
+parts/
+src/jsonrpcclient/build.xml
+src/jsonrpcclient/war/WEB-INF/classes
+src/jsonrpcclient/war/WEB-INF/lib
+src/jsonrpcclient/war/jsonrpcclient
+var
