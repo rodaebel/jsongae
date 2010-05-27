@@ -29,12 +29,48 @@
           </h1>
           <hr />
           <h2 class="emph">
-            Demo: GWT Client on GAE Python
+            Remote Procedure Calls The Other Way
           </h2>
         </div>
       </div>
       <hr />
-      <div class="span-8 colborder">
+      <div class="span-14 colborder">
+        <p>
+          Remote Procedure Calls are commonly synchronous. This means that a
+          client expects an immediate response with some kind of result from
+          the server.
+        </p>
+        <p>
+          In contrast, JSON-RPC allows for bidirectional, asynchronous
+          communication between the service and the client, treating each more
+          like peers and allowing peers to call one another or send
+          notifications to one another.
+        </p>
+        <p>
+          <img style="padding-right:30px;margin-right:20px;border-right:1px solid #ddd" src="jsongae_sync.gif" />
+          <img src="jsongae.gif" />
+        </p>
+        <p>
+          Think of a message board. The client receives a RPC call from the
+          server to store an incoming message <b>client-side</b>.
+          This could happen even when the board isn't shown, for instance,
+          when the user composes a new message. Especially mobile web
+          applications don't have much space to show a message board and an
+          input box at the same time.
+        </p>
+        <p>
+          It also allows multiple commands to be sent to a peer at once, which
+          can be highly useful to keep network traffic low. Bear in mind that
+          these messages may be answered out of order.
+        </p>
+        <h3>Channel API / Web Sockets</h3>
+        <p>
+          In order to accomplish asynchronous communication for JSON-RPC, we
+          need a service which enables us to deliver a RPC's result at a later
+          point of time.
+        </p>
+      </div>
+      <div class="span-9 last">
         <p>
           This sample application demonstrates how to run a client written
           with GWT on Google App Engine (Python). The client communicates with
@@ -42,21 +78,6 @@
         </p>
         <p>
           <a href="client/index.html">Run Client Application</a>
-        </p>
-      </div>
-      <div class="span-6 colborder">
-        <p>
-          <br /><img src="jsongae.gif" /><br /><br />
-        </p>
-      </div>
-      <div class="span-8 last">
-        <h4>Remote Procedure Calls</h4>
-        <p>
-          In contrast to XML-RPC or SOAP, JSON-RPC allows for bidirectional
-          communication between the service and the client, treating each more
-          like peers and allowing peers to call one another or send
-          notifications to one another. It also allows command batches to be
-          sent to a peer.
         </p>
       </div>
       <div class="span-24">
