@@ -1,6 +1,8 @@
 package com.example.jsonrpcclient.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
@@ -16,6 +18,9 @@ import com.google.gwt.json.client.JSONString;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RootPanel;
 
 
 /**
@@ -49,7 +54,7 @@ public class JsonRpcClient implements EntryPoint {
 				public void onResponseReceived(Request request, Response response) {
 					String text = response.getText();
 					if (text == null || text.equals("")) {
-						throw new JSONException("Response body from Server was empty");
+						throw new JSONException("JSON-RPC response body from server was empty");
 					} 
 					JSONObject jsonResponse = (JSONObject) JSONParser.parse(text);
 
@@ -57,7 +62,7 @@ public class JsonRpcClient implements EntryPoint {
 					if ((jsonResponse.containsKey("error") || jsonResponse.containsKey("result")) &&
 						!jsonResponse.containsKey("id")
 					) {
-						throw new JSONException("Got not correct JSON_RPC response from Server");
+						throw new JSONException("No JSON-RPC response from server");
 					} else {
 						JSONValue error = jsonResponse.get("error");
 						if (error != null && !(error instanceof JSONNull)) {
@@ -86,21 +91,41 @@ public class JsonRpcClient implements EntryPoint {
 		return result;
 	}
 
-	public void onModuleLoad() {
+	// UI Elements
 
-		JSONArray params = new JSONArray();
-		params.set(0, new JSONString("foobar"));
-		sendJSONRequest("data", params, new AsyncCallback<JSONValue>() {
+	private Label label = new Label("Press the 'Go' button to make a JSON-RPC.");
+
+	public void setLabel(String data) {
+		this.label.setText(data.toString());
+	}
+
+	public void onModuleLoad() {
+		// Assamble the root panel.
+
+		Button refreshButton = new Button("Go");
+		refreshButton.addClickHandler(new ClickHandler() {
 			
 			@Override
-			public void onSuccess(JSONValue result) {
-				Window.alert(result.toString());
-			}
-			
-			@Override
-			public void onFailure(Throwable caught) {
-				Window.alert(caught.toString());
+			public void onClick(ClickEvent event) {
+				// Update data.
+				JSONArray params = new JSONArray();
+				params.set(0, new JSONString("foobar"));
+				sendJSONRequest("data", params, new AsyncCallback<JSONValue>() {
+
+					@Override
+					public void onSuccess(JSONValue result) {
+						setLabel("JSON-RPC result: " + result.toString());
+					}
+
+					@Override
+					public void onFailure(Throwable caught) {
+						Window.alert(caught.toString());
+					}
+				});
 			}
 		});
+
+		RootPanel.get("appContainer").add(label);
+		RootPanel.get("appContainer").add(refreshButton);
 	}
 }
