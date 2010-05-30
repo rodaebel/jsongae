@@ -17,6 +17,9 @@ skip_files:
 
 handlers:
 
+- url: /stats.*
+  script: $PYTHON_LIB/google/appengine/ext/appstats/ui.py
+
 - url: /client
   static_dir: client
 
