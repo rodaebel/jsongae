@@ -39,6 +39,9 @@ import sys
 import traceback
 
 
+JSON_RPC_KEYS = frozenset(['method', 'jsonrpc', 'params', 'id'])
+
+
 def ServiceMethod(fn):
     """Decorator to mark a method of a JsonRpcHandler as ServiceMethod.
 
@@ -155,8 +158,7 @@ class JsonRpcMessage(object):
                 raise InvalidRequestError(
                         'Invalid JSON-RPC Message. Must be an object.')
 
-            if not set(json.keys()) <= frozenset(
-                    ['method','jsonrpc','params','id']):
+            if not set(json.keys()) <= JSON_RPC_KEYS:
                 raise InvalidRequestError('Invalid members in request object.')
 
             if not ('jsonrpc' in json and json['jsonrpc'] == '2.0'):
