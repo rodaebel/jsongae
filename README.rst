@@ -59,7 +59,17 @@ Then access the application using a web browser with the following URL::
   http://localhost:8080/
 
 
-Running tests
+Developing the RPC Client
+-------------------------
+
+In order to run the JSON RPC client application in development mode, import
+the project into your Eclipse workspace. Run the client as Web Application and
+access the application using a web browser with the following URL::
+
+  http://127.0.0.1:8080/client/index.html?gwt.codesvr=127.0.0.1:9997
+
+
+Running Tests
 -------------
 
 In order to run all functional tests enter the following command::
