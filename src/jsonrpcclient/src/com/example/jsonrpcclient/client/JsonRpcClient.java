@@ -100,7 +100,7 @@ public class JsonRpcClient implements EntryPoint {
 	}
 
 	public void onModuleLoad() {
-		// Assamble the root panel.
+		// Assemble the root panel.
 
 		Button refreshButton = new Button("Go");
 		refreshButton.addClickHandler(new ClickHandler() {
