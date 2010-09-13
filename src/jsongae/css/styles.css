@@ -1,5 +1,5 @@
 div#header {
-  background-image: url(/gradient.gif);
+  background-image: url(/images/gradient.gif);
   height: 44px;
   text-align: right;
 }
@@ -9,7 +9,7 @@ div#header {
 }
 
 #header span {
-  background: url(/separator.gif) no-repeat;
+  background: url(/images/separator.gif) no-repeat;
   font-size: 18px;
   margin: 0 3px 0 8px;
   width: 1px;
