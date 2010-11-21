@@ -56,7 +56,7 @@ public class JsonRpcClient implements EntryPoint {
 					if (text == null || text.equals("")) {
 						throw new JSONException("JSON-RPC response body from server was empty");
 					} 
-					JSONObject jsonResponse = (JSONObject) JSONParser.parse(text);
+					JSONObject jsonResponse = (JSONObject) JSONParser.parseStrict(text);
 
 					// Test if compatible JSON-RPC Response
 					if ((jsonResponse.containsKey("error") || jsonResponse.containsKey("result")) &&
