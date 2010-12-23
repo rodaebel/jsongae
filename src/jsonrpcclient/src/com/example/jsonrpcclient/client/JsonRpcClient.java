@@ -36,7 +36,7 @@ public class JsonRpcClient implements EntryPoint {
 		this.JSONRequestID = 0;
 	}
 
-	protected final void sendJSONRequest(String methodName, JSONArray params, final AsyncCallback<JSONValue> cb) {
+	protected final void makeRPC(String methodName, JSONArray params, final AsyncCallback<JSONValue> cb) {
 		JSONObject requestData = new JSONObject();
 		requestData.put("method", new JSONString(methodName));
 		requestData.put("params", params);
@@ -83,6 +83,29 @@ public class JsonRpcClient implements EntryPoint {
 			cb.onFailure(e);
 		}
 	}
+	
+	protected final void makeRPC(String methodName, JSONArray params) {
+		JSONObject requestData = new JSONObject();
+		requestData.put("method", new JSONString(methodName));
+		requestData.put("params", params);
+		requestData.put("jsonrpc", new JSONString("2.0"));
+
+		RequestBuilder rb = this.createBuilder();
+
+		try {
+			rb.sendRequest(requestData.toString(), new RequestCallback() {
+				public void onError(Request request, Throwable exception) {
+					Window.alert(exception.toString());
+				}
+
+				public void onResponseReceived(Request request, Response response) {
+					// Notifications don't get responses.
+				}
+			});
+		} catch(Exception e) {
+			System.out.println(e);
+		}
+	}
 
 	protected RequestBuilder createBuilder() {
 		RequestBuilder result = new RequestBuilder(RequestBuilder.POST, this.service_endpoint);
@@ -93,7 +116,7 @@ public class JsonRpcClient implements EntryPoint {
 
 	// UI Elements
 
-	private Label label = new Label("Press the 'Go' button to make a JSON-RPC.");
+	private Label label = new Label();
 
 	public void setLabel(String data) {
 		this.label.setText(data.toString());
@@ -102,15 +125,15 @@ public class JsonRpcClient implements EntryPoint {
 	public void onModuleLoad() {
 		// Assemble the root panel.
 
-		Button refreshButton = new Button("Go");
-		refreshButton.addClickHandler(new ClickHandler() {
+		Button fetchButton = new Button("Fetch");
+		fetchButton.addClickHandler(new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
 				// Update data.
 				JSONArray params = new JSONArray();
 				params.set(0, new JSONString("foobar"));
-				sendJSONRequest("data", params, new AsyncCallback<JSONValue>() {
+				makeRPC("data", params, new AsyncCallback<JSONValue>() {
 
 					@Override
 					public void onSuccess(JSONValue result) {
@@ -125,7 +148,21 @@ public class JsonRpcClient implements EntryPoint {
 			}
 		});
 
+		Button notifyButton = new Button("Notify");
+		notifyButton.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				// Update data.
+				JSONArray params = new JSONArray();
+				params.set(0, new JSONString("A notification"));
+				params.set(1, new JSONNumber(10));
+				makeRPC("notify", params);
+			}
+		});
+
+		RootPanel.get("appContainer").add(fetchButton);
+		RootPanel.get("appContainer").add(notifyButton);
 		RootPanel.get("appContainer").add(label);
-		RootPanel.get("appContainer").add(refreshButton);
 	}
 }

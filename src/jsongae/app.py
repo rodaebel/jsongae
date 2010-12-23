@@ -4,6 +4,8 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from json_rpc import JsonRpcHandler, ServiceMethod
+import logging
+import os
 
 
 class MyData(db.Model):
@@ -22,10 +24,13 @@ class MainHandler(webapp.RequestHandler):
         MyData.get_or_insert(key_name="foobar", string="Some test data.")
 
         user = users.get_current_user()
-        vars = dict(
-            user=users.get_current_user()
-        )
-        self.response.out.write(template.render('index.html', vars))
+
+        template_vars = dict(user=users.get_current_user())
+
+        path = os.path.join(
+            os.path.dirname(__file__), 'templates', 'index.html')
+
+        self.response.out.write(template.render(path, template_vars))
 
 
 class RPCHandler(JsonRpcHandler):
@@ -39,6 +44,10 @@ class RPCHandler(JsonRpcHandler):
         entity = MyData.get_by_key_name(key_name)
         if entity:
             return entity.json()
+
+    @ServiceMethod
+    def notify(self, message, number):
+        logging.info("%s (%i)", message, number)
 
     @ServiceMethod
     def test(self, message):
