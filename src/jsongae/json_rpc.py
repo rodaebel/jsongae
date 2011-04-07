@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 Florian Glanzner (fgl), Tobias Rodäbel
+# Copyright 2010, 2011 Florian Glanzner (fgl), Tobias Rodäbel
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,25 +16,25 @@
 """JsonRpcHandler webapp.RequestHandler for TyphoonAE and Google App Engine.
 
 See specs:
-  http://groups.google.com/group/json-rpc/web/json-rpc-2-0
-  http://groups.google.com/group/json-rpc/web/json-rpc-over-http
+  - http://groups.google.com/group/json-rpc/web/json-rpc-2-0
+  - http://groups.google.com/group/json-rpc/web/json-rpc-over-http
 
 This version does not support:
-  - *args, **kwargs and default-values are not supported for Service Methods
+  - *args, **kwargs and default-values are not allowed for Service Methods
   - handles only HTTP POST
   - JSON-RPC Version < 2.0 (same as 1.2) not supported
 
 TODOs:
- - more Comments
- - Examples (doctest?)
- - Factor out handler methods to reuse in other frameworks
+  - more Comments
+  - Examples (doctest?)
+  - Factor out handler methods to reuse in other frameworks
 """
 
-from django.utils.simplejson import dumps, loads
 from google.appengine.ext import webapp
 from inspect import getargspec
 import cgi
 import logging
+import simplejson
 import sys
 import traceback
 
@@ -46,6 +46,9 @@ def ServiceMethod(fn):
     """Decorator to mark a method of a JsonRpcHandler as ServiceMethod.
 
     This exposes methods to the RPC interface.
+
+    :param function fn: A function.
+    :returns: A function.
 
     TODO:
         - Warn when applied to underscore methods
@@ -63,7 +66,6 @@ class JsonRpcError(Exception):
     """
     code = 0
     message = None
-    data = None
     status = 500
 
     def __init__(self, message=None):
@@ -82,9 +84,6 @@ class JsonRpcError(Exception):
             'message' : '%s: %s' %
                 (str(self.__class__.__name__),
                 str(self.message))}
-        if self.data is not None:
-            error['data'] = self.data
-        # TODO More / less info depending on DEBUG mode
         return error
 
         
@@ -95,14 +94,14 @@ class ParseError(JsonRpcError):
     """
 
     code = -32700
-    message = 'Parse error.'
+    message = 'Parse error'
 
 
 class InvalidRequestError(JsonRpcError):
     """The JSON sent is not a valid Request object."""
 
     code = -32600
-    message = 'Invalid Request.'
+    message = 'Invalid Request'
     status = 400
 
 
@@ -110,7 +109,7 @@ class MethodNotFoundError(JsonRpcError):
     """The method does not exist / is not available."""
 
     code = -32601
-    message = 'Method not found.'
+    message = 'Method not found'
     status = 404
 
 
@@ -118,14 +117,14 @@ class InvalidParamsError(JsonRpcError):
     """Invalid method parameter(s)."""
 
     code = -32602
-    message = 'Invalid params.'
+    message = 'Invalid params'
 
 
 class InternalError(JsonRpcError):
     """Internal JSON-RPC error."""
 
     code = -32603
-    message = 'Internal error.'
+    message = 'Internal error'
 
 
 class ServerError(JsonRpcError):
@@ -139,7 +138,10 @@ class ServerError(JsonRpcError):
 
 
 class JsonRpcMessage(object):
-    """A single JSON-RPC message."""
+    """A single JSON-RPC message.
+
+    :param dict json: The JSON-RPC message Python representation.
+    """
 
     def __init__(self, json=None):
         super(JsonRpcMessage, self).__init__()
@@ -151,30 +153,34 @@ class JsonRpcMessage(object):
             self.from_json(json)
 
     def from_json(self, json):
-        """Parses a single JSON-RPC message."""
+        """Parses a single JSON-RPC message.
 
+        :param dict json: The JSON-RPC message Python representation.
+        """
         try:
             if not isinstance(json, dict):
                 raise InvalidRequestError(
-                        'Invalid JSON-RPC Message. Must be an object.')
+                        'Invalid JSON-RPC Message; must be an object')
 
             if not set(json.keys()) <= JSON_RPC_KEYS:
-                raise InvalidRequestError('Invalid members in request object.')
+                raise InvalidRequestError('Invalid members in request object')
 
             if not ('jsonrpc' in json and json['jsonrpc'] == '2.0'):
-                raise InvalidRequestError('Server supports JSON-RPC 2.0 only.')
+                raise InvalidRequestError('Server supports JSON-RPC 2.0 only')
 
             if 'method' not in json:
-                raise InvalidRequestError('No method specified.')
+                raise InvalidRequestError('No method specified')
+
             if not isinstance(json['method'], basestring):
-                raise InvalidRequestError('Method must be a string.')
+                raise InvalidRequestError('Method must be a string')
+
             self.method_name = json['method']
 
             if 'params' in json:
                 params = json['params']
                 if not isinstance(params, (dict, list, tuple)):
                     raise InvalidRequestError(
-                            '"params" must be an array or object.')
+                            "'params' must be an array or object")
                 self.params = params
 
             if 'id' not in json:
@@ -183,7 +189,8 @@ class JsonRpcMessage(object):
                 self.message_id = json['id']
         except InvalidRequestError, ex:
             self.error = ex
-            logging.info('Encountered invalid json message: ')
+            logging.error('Encountered invalid json message')
+
 
 class JsonRpcHandler(webapp.RequestHandler):
     """Subclass this handler to implement a JSON-RPC handler.
@@ -204,12 +211,13 @@ class JsonRpcHandler(webapp.RequestHandler):
 
         self.response.headers['Content-Type'] = 'application/json-rpc'
         try:
+            logging.debug("Raw JSON-RPC: %s", self.request.body)
             messages, batch_request = self.parse_body(self.request.body)
         except (InvalidRequestError, ParseError), ex:
-            logging.info(ex)
+            logging.error(ex)
             self.error(ex.status)
             body = self._build_error(ex)
-            self.response.out.write(dumps(body))
+            self.response.out.write(simplejson.dumps(body))
         else:
             for msg in messages:
                 self.handle_message(msg)
@@ -223,21 +231,25 @@ class JsonRpcHandler(webapp.RequestHandler):
             if batch_request:
                 #TODO Which http_status to set for batches?
                 self.error(200)
-                body =  [r[1] for r in responses]
-                self.response.out.write(dumps(body))
+                body = [r[1] for r in responses]
+                self.response.out.write(simplejson.dumps(body))
             else:
                 if len(responses) != 1:
-                    raise  InternalError() #this cannot happen
+                    # This should never happen
+                    raise InternalError()   # pragma: no cover
                 status, body = responses[0]
                 self.error(status)
-                self.response.out.write(dumps(body))
+                self.response.out.write(simplejson.dumps(body))
 
     def get_responses(self, messages):
         """Gets a list of responses from all 'messages'.
 
-        Responses are a tuple of http-status and body.
-        A Response may be None if the message was a notification.
-        None Responses are excluded from the returned list.
+        Responses are a tuple of HTTP-status and body.
+        A response may be None if the message was a notification and will be
+        excluded from the returned list.
+
+        :param list messages: JSON messages.
+        :returns: List of responses.
         """
 
         responses = []
@@ -251,7 +263,9 @@ class JsonRpcHandler(webapp.RequestHandler):
         """Executes a message.
 
         The method of the message is executed.
-        Errors and/or result are written back to the message.
+        Errors and/or results are written back to the message.
+
+        :param dict msg: A JSON-RPC message.
         """
 
         if msg.error != None:
@@ -261,14 +275,12 @@ class JsonRpcHandler(webapp.RequestHandler):
                 method = self.get_service_method(msg.method_name)
                 params = getattr(msg, 'params', None)
                 msg.result = self.execute_method(method, params)
-            except (MethodNotFoundError, 
-                    InvalidParamsError,
-                    ServerError ), ex:
-                logging.info(ex)
+            except (MethodNotFoundError, InvalidParamsError, ServerError), ex:
+                logging.error(ex)
                 msg.error = ex
-            except Exception, exc:
-                logging.error(exc)
-                ex = InternalError("Error executing service method.")
+            except Exception, ex:
+                logging.error(ex)
+                ex = InternalError("Error executing service method")
                 ex.data = ''.join(traceback.format_exception(*sys.exc_info()))
                 msg.error = ex
 
@@ -278,17 +290,19 @@ class JsonRpcHandler(webapp.RequestHandler):
         Validates for correct JSON and returns a tuple with a list of JSON-RPC
         messages and wether the request was a batch-request.
         Raises ParseError and InvalidRequestError.
+
+        :param string body: The HTTP body.
         """
 
         try:
-            json = loads(body)
+            json = simplejson.loads(body)
         except ValueError:
             raise ParseError()
 
         messages = []
         if isinstance(json, (list, tuple)):
             if len(json) == 0:
-                raise InvalidRequestError('Recieved an empty batch message.')
+                raise InvalidRequestError('Recieved an empty batch message')
             batch_request = True
             for obj in json:
                 msg = JsonRpcMessage(obj)
@@ -303,9 +317,12 @@ class JsonRpcHandler(webapp.RequestHandler):
     def get_response(self, msg):
         """Gets the response object for a message.
 
-        Returns a tuple of a http-status and a json object or None.
-        The JSON object maybe a JSON-RPC error object, a result object
+        Returns a tuple of a HTTP-status and a json object or None.
+        The JSON object may be a JSON-RPC error object or a result object.
         None is returned if the message was a notification.
+
+        :param dict msg: A JSON-RPC message.
+        :returns: Tuple with status and result.
         """
         if msg.notification:
             return None
@@ -314,40 +331,50 @@ class JsonRpcHandler(webapp.RequestHandler):
                     self._build_error(msg.error, msg.message_id))
         elif msg.result:
             return (200, self._build_result(msg))
-        else:
+        else:   # pragma: no cover
             # Should never be reached
-            logging.warn('Message neither contains an error nor a result.')
+            logging.warn('Message neither contains an error nor a result')
 
     def _build_error(self, err, message_id=None):
         return {'jsonrpc':'2.0',
                 'error':err.getJsonData(),
                 'id':message_id}
+
     def _build_result(self, msg):
         return {'jsonrpc':'2.0',
                 'result':msg.result,
                 'id':msg.message_id}
 
     def execute_method(self, method, params):
-        args = set(getargspec(method)[0][1:])
+        """Executes the RPC method.
+
+        :param function method: A method object.
+        :param params: List, tuple or dictionary with JSON-RPC parameters.
+        """
+        args, varargs, varkw, defaults = getargspec(method)
+        if varargs or varkw:
+            raise InvalidParamsError(
+                "Service method definition must not have variable parameters")
+        args_set = set(args[1:])
         if params is None:
-            if not len(args) == 0:
+            if not len(args_set) == 0:
                 raise InvalidParamsError(
-                    "Wrong number of parameters. "
-                    "Expected %i but 'params' was omitted "
-                    "from json-rpc message." % (len(args)))
+                    "Wrong number of parameters; "
+                    "expected %i but 'params' was omitted "
+                    "from JSON-RPC message" % (len(args_set)))
             return method()
-        if isinstance(params, (list, tuple)):
-            if not len(args) == len(params):
+        elif isinstance(params, (list, tuple)):
+            if not len(args_set) == len(params):
                 raise InvalidParamsError(
-                    "Wrong number of parameters. "
-                    "Expected %i got %i." % (len(args),len(params)))
+                    "Wrong number of parameters; "
+                    "expected %i got %i" % (len(args_set),len(params)))
             return method(*params)
-        if isinstance(params, dict):
+        elif isinstance(params, dict):
             paramset = set(params)
-            if not args == paramset:
+            if not args_set == paramset:
                 raise InvalidParamsError(
                     "Named parameters do not "
-                    "match method. Expected %s." % (str(args)))
+                    "match method; expected %s" % (str(args_set)))
             params = self.decode_dict_keys(params)
             return method(**params)
 
@@ -356,23 +383,25 @@ class JsonRpcHandler(webapp.RequestHandler):
         f = getattr(self, meth_name, None)
         if (f == None or not hasattr(f, 'IsServiceMethod')
                 or not getattr(f, 'IsServiceMethod') == True):
-            raise MethodNotFoundError('Method %s not found.' % meth_name)
+            raise MethodNotFoundError('Method %s not found' % meth_name)
         return f
 
     def decode_dict_keys(self, d):
-        """Convert all keys i dict d to str.
+        """Convert all keys in dict d to str.
 
-        Maybe unicode in JSON but no Unicode as keys in python allowed.
+        Python does not allow unicode keys in dictionaries.
+
+        :param dict d: A JSON-RPC message.
         """
         try:
             r = {}
             for (k, v) in d.iteritems():
                 r[str(k)] = v
             return r
-        except UnicodeEncodeError:
+        except UnicodeEncodeError:  # pragma: no cover
             # Unsure which error is the correct to raise here.
             # Actually this code will probably never be reached
             # because "wrong" parameters will be filtered out
             # and returned as InvalidParamsError() and methods cant
             # have non-ascii parameter names.
-            raise InvalidRequestError("Parameter-names must be ASCII.")
+            raise InvalidRequestError("Parameter-names must be ASCII")
